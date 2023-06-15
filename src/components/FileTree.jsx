@@ -47,16 +47,16 @@ const DisplayFolder = ({
           {folderObject.name}
         </div>
       </li>
-      {console.log(` checking collap ${JSON.stringify(collapsed)}`)}
+      {/* {console.log(` checking collap ${JSON.stringify(collapsed)}`)} */}
 
-      {!collapsed[srno] &&
+      {collapsed[srno] &&
         folderObject.children &&
         folderObject.children.map((x, index) => {
           const newSrno = srno + (index + 1).toString();
           // changeCollapsed(newSrno, true);
           // console.log(newSrno);
           return (
-            <div style={{ display: collapsed[srno] ? 'none' : 'block' }}>
+            <div key={newSrno}>
               {
                 <IdentifyAndDisplayObject
                   key={index}
@@ -92,7 +92,7 @@ const IdentifyAndDisplayObject = ({
       />
     );
   } else if (obj.type === 'file') {
-    return displayFile(obj, level);
+    return displayFile(obj, level, srno + 'f');
   }
 };
 
@@ -118,15 +118,11 @@ const DisplayFolderTree = ({
 
 const FileTree = ({ root }) => {
   const [collapsed, setCollapsed] = useState({});
-  const srno = '1';
-  useEffect(() => {
-    setCollapsed({ 1: true });
-  }, []);
   const changeCollapsed = (updateSrno, statusCollapsed) => {
     const newCollapsed = { ...collapsed };
-    // console.log('updateSrno', updateSrno);
     newCollapsed[updateSrno] = statusCollapsed;
-    console.log(newCollapsed);
+    // console.log('col', collapsed);
+    // console.log(newCollapsed);
     setCollapsed({
       ...newCollapsed,
     });
@@ -139,7 +135,7 @@ const FileTree = ({ root }) => {
           level={1}
           collapsed={collapsed}
           changeCollapsed={changeCollapsed}
-          srno={srno}
+          srno={'1'}
         />
       )}
     </>

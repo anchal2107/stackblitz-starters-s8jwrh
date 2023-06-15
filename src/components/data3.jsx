@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const getNodeIcon = (node) => {
   if (node.type === 'dir') {
@@ -22,73 +22,130 @@ const displayFile = (fileObject, level) => {
   );
 };
 
-const DisplayFolder = ({ folderObject, level, collapsed, setCollapsed }) => {
-  const changeCollapsed = () => {
-    setCollapsed({
-      ...collapsed,
-      [folderObject.name]: !collapsed[folderObject.name],
-    });
-  };
-
+const DisplayFolder = ({
+  folderObject,
+  level,
+  collapsed,
+  changeCollapsed,
+  srno,
+}) => {
+  useEffect(() => {
+    // console.log(` in console ${srno}`)
+    changeCollapsed(srno, false);
+  }, []);
   return (
     <>
       <li
         data-testid="node"
-        onClick={changeCollapsed}
+        onClick={() => changeCollapsed(srno, !collapsed[srno])}
         style={{
           cursor: 'pointer',
           color: collapsed[folderObject.name] ? 'black' : 'blue',
           marginLeft: `${level * 20}px`,
         }}
       >
-        <div data-testid="dir-expand" onClick={changeCollapsed}>
+        <div
+          data-testid="dir-expand"
+          onClick={() => changeCollapsed(srno, !collapsed[srno])}
+        >
           {folderObject.name}
         </div>
       </li>
-      <div style={{ display: collapsed[folderObject.name] ? 'none' : 'block' }}>
-        {!collapsed[folderObject.name] &&
-          folderObject.children &&
-          folderObject.children.map((x, index) => (
-            <IdentifyAndDisplayObject
-              key={index}
-              obj={x}
-              level={level + 1}
-              collapsed={collapsed}
-              setCollapsed={setCollapsed}
-            />
-          ))}
-      </div>
+      {/* {console.log(` checking collap ${JSON.stringify(collapsed)}`)} */}
+
+      {collapsed[srno] &&
+        folderObject.children &&
+        folderObject.children.map((x, index) => {
+          const newSrno = srno + (index + 1).toString();
+          // changeCollapsed(newSrno, true);
+          // console.log(newSrno);
+          return (
+            <div key={newSrno}>
+              {
+                <IdentifyAndDisplayObject
+                  key={index}
+                  obj={x}
+                  level={level + 1}
+                  collapsed={collapsed}
+                  changeCollapsed={changeCollapsed}
+                  srno={newSrno}
+                />
+              }
+            </div>
+          );
+        })}
     </>
   );
 };
 
-const IdentifyAndDisplayObject = ({ obj, level, collapsed, setCollapsed }) => {
+const IdentifyAndDisplayObject = ({
+  obj,
+  level,
+  collapsed,
+  changeCollapsed,
+  srno,
+}) => {
   if (obj.type === 'dir') {
     return (
       <DisplayFolder
         folderObject={obj}
         level={level}
         collapsed={collapsed}
-        setCollapsed={setCollapsed}
+        changeCollapsed={changeCollapsed}
+        srno={srno}
       />
     );
   } else if (obj.type === 'file') {
-    return displayFile(obj, level);
+    return displayFile(obj, level, srno + 'f');
   }
 };
 
-const DisplayFolderTree = ({ dir, level }) => {
-  const [collapsed, setCollapsed] = useState({});
-
+const DisplayFolderTree = ({
+  dir,
+  level,
+  collapsed,
+  changeCollapsed,
+  srno,
+}) => {
   return (
     <div>
-      {IdentifyAndDisplayObject({ obj: dir, level, collapsed, setCollapsed })}
+      {IdentifyAndDisplayObject({
+        obj: dir,
+        level,
+        collapsed,
+        changeCollapsed,
+        srno,
+      })}
     </div>
   );
 };
 
 const FileTree = ({ root }) => {
-  return <>{root && <DisplayFolderTree dir={root} level={1} />}</>;
+  const [collapsed, setCollapsed] = useState({});
+  const srno = '1';
+
+  const changeCollapsed = (updateSrno, statusCollapsed) => {
+    const newCollapsed = { ...collapsed };
+    // console.log('updateSrno', updateSrno);
+    newCollapsed[updateSrno] = statusCollapsed;
+    // console.log(newCollapsed);
+    setCollapsed({
+      ...newCollapsed,
+    });
+  };
+  return (
+    <>
+      {root && (
+        <DisplayFolderTree
+          dir={root}
+          level={1}
+          collapsed={collapsed}
+          changeCollapsed={changeCollapsed}
+          srno={srno}
+        />
+      )}
+    </>
+  );
 };
 
 export default FileTree;
